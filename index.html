@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Chat App</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    #chat-window {
+      border: 1px solid #ccc;
+      padding: 10px;
+      height: 300px;
+      overflow-y: scroll;
+      margin-bottom: 20px;
+    }
+    .sent-message {
+      text-align: right;
+      color: green;
+    }
+    .received-message {
+      text-align: left;
+      color: blue;
+    }
+  </style>
+</head>
+<body>
+  <div>
+    <input type="text" id="fromUserId" placeholder="Enter your ID">
+    <input type="text" id="toUserId" placeholder="Enter receiver's ID">
+    <input type="text" id="messageInput" placeholder="Enter message">
+    <button onclick="sendMessage()">Send</button>
+  </div>
+
+  <div id="chat-window"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.2/socket.io.js"></script>
+  <script>
+    const socket = io.connect('http://52.15.79.182:8080');
+
+    function sendMessage() {
+      const fromUserId = document.getElementById('fromUserId').value;
+      const toUserId = document.getElementById('toUserId').value;
+      const message = document.getElementById('messageInput').value;
+
+      socket.emit('message', {
+        from: fromUserId,
+        to: toUserId,
+        message: message
+      });
+    }
+
+    socket.on('receive-message', ({ from, message }) => {
+      const currentUser = document.getElementById('fromUserId').value;
+      appendMessage(`${from === currentUser ? 'You' : from}: ${message}`, from === currentUser ? 'sent-message' : 'received-message');
+    });
+
+    function appendMessage(msg, styleClass) {
+      const chatWindow = document.getElementById('chat-window');
+      const messageElement = document.createElement('p');
+      messageElement.textContent = msg;
+      messageElement.classList.add(styleClass);
+      chatWindow.appendChild(messageElement);
+    }
+    socket.on('message', (data) => {
+      const { from, to, message } = data;
+      if (from === document.getElementById('fromUserId').value) {
+        appendMessage(`You: ${message}`, 'sent-message');
+      } else {
+        appendMessage(`${from}: ${message}`, 'received-message');
+      }
+    });
+  </script>
+</body>
+</html>
