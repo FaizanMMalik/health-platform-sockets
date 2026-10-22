@@ -16,6 +16,7 @@ const imagesRouter = require('./routes/images');
 const VideosRouter = require('./routes/videoimages');
 const ImageArray = require('./routes/ImageArray');
 const inviteCaseRouter = createCaseApiRouter(db, sendPushNotificationMessage);
+const { createNotificationsRouter } = require('./routes/notifications');
 
 const app = express();
 const server = http.createServer(app);
@@ -103,6 +104,8 @@ const io = socketIo(server, {
 });
 
 const onlineUsers = new Set();
+
+app.use('/api/', createNotificationsRouter(io, db));
 
 io.on('connection', (socket) => {
   registerChatHandlers(io, socket, db, sendPushNotificationMessage, baseUrl);
